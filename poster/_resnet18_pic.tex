@@ -1,0 +1,54 @@
+% ResNet-18 architecture diagram (\input'd by drivers; do not compile directly).
+\begin{tikzpicture}[node distance=0.45cm and 0.45cm]
+
+% main pipeline (placed first so we can center the title above it)
+\node[input] (in) {Input\\[1pt]\scriptsize (1, 1, 1000)};
+\node[conv, right=of in] (c1) {Conv1d\\[1pt]\scriptsize 7$\times$1, s=2\\\scriptsize 1$\to$64 ch\\\scriptsize BN+ReLU\\\scriptsize MaxPool};
+\node[layer, right=of c1] (l1) {Layer 1\\[1pt]\scriptsize 2$\times$ BasicBlock\\\scriptsize 64 ch};
+\node[layer, right=of l1] (l2) {Layer 2\\[1pt]\scriptsize 2$\times$ BasicBlock\\\scriptsize 128 ch, s=2};
+\node[layer, right=of l2] (l3) {Layer 3\\[1pt]\scriptsize 2$\times$ BasicBlock\\\scriptsize 256 ch, s=2};
+\node[layer, right=of l3] (l4) {Layer 4\\[1pt]\scriptsize 2$\times$ BasicBlock\\\scriptsize 512 ch, s=2};
+\node[pool, right=of l4] (gp) {Global\\AvgPool};
+\node[fc, right=of gp] (fc) {FC\\[1pt]\scriptsize 512 $\to$ 1\\\scriptsize Sigmoid};
+\node[output, right=0.5cm of fc] (out) {P(MI)};
+
+% Title + subtitle, centered over the pipeline
+\node[font=\Large\sffamily\bfseries, text=darkink, anchor=south]
+  at ([yshift=1.1cm]$(in.north)!0.5!(out.north)$) (title) {1D ResNet-18 (replicated from Obermeyer et al.)};
+\node[font=\sffamily, text=darkink!60, anchor=north, below=2pt of title.south]
+  (subtitle) {3.8M parameters \textperiodcentered{} 14.7\,MB};
+
+% arrows
+\foreach \a/\b in {in/c1, c1/l1, l1/l2, l2/l3, l3/l4, l4/gp, gp/fc, fc/out}
+  \draw[arrow] (\a) -- (\b);
+
+% --- BasicBlock detail ---
+% Outer box: fixed width, centered horizontally on main pipeline
+\node[bbbox, minimum width=12cm, minimum height=3.4cm, anchor=north]
+      at ([yshift=-1.2cm]$(in.south)!0.5!(out.south)$) (bbox) {};
+
+\node[font=\sffamily\bfseries, text=darkink, anchor=north]
+      at ([yshift=-10pt]bbox.north) {BasicBlock1D (residual connection)};
+
+% Inner chain centered on bbox horizontal center.
+% Chain widths: b1=2.4 / b2=2.4 / add=0.7 / relu=1.6 / bbout~1.0  (cm)
+% Gaps: 0.6, 0.6, 0.6, 0.4. Total ~10.3cm. Center of chain at ~5.15cm from b1's left.
+% b1.center sits 1.2cm right of chain-left, so b1.center = chain_center - 3.95cm.
+\node[bbblock, anchor=center] at ([xshift=-3.95cm, yshift=-0.05cm]bbox.center)
+  (b1) {Conv 3$\times$1\\\scriptsize BN + ReLU};
+\node[bbblock, right=0.6cm of b1] (b2) {Conv 3$\times$1\\\scriptsize BN};
+\node[addnode, right=0.6cm of b2] (add) {+};
+\node[bbblock, minimum width=1.6cm, right=0.6cm of add] (relu) {ReLU};
+\node[font=\footnotesize\sffamily, text=darkink, right=0.4cm of relu] (bbout) {output};
+
+\draw[arrow] (b1) -- (b2);
+\draw[arrow] (b2) -- (add);
+\draw[arrow] (add) -- (relu);
+\draw[arrow] (relu) -- (bbout);
+
+% skip connection
+\draw[skip] (b1.south) -- ++(0,-0.5) -| (add.south);
+\node[font=\scriptsize\itshape, text=skipred, anchor=north]
+      at ([yshift=-0.7cm]b2.south) {skip connection (identity or 1$\times$1 conv)};
+
+\end{tikzpicture}

@@ -1,0 +1,6 @@
+{
+  "temperature": 0.4451327831905373,
+  "platt_slope": 2.4854370133785118,
+  "platt_intercept": 0.6432668483569561,
+  "method": "Apply before sigmoid: prob = sigmoid(logit / temperature) for temp scaling, or use platt params with logistic function"
+}

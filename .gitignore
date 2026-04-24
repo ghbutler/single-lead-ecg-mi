@@ -1,0 +1,44 @@
+# --- Sensitive / large / generated ---
+.env
+.DS_Store
+data/*
+!data/README.md
+cache/
+checkpoints/
+*.duckdb
+*.duckdb.wal
+
+# --- Python ---
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# --- LaTeX build artifacts ---
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.toc
+*.bbl
+*.blg
+*.nav
+*.snm
+*.vrb
+
+# --- Preview/render images generated during iteration ---
+preview-*.png
+diagprev-*.png
+page-*.png
+col2*.png
+
+# --- Demo (not yet ready for upload) ---
+demo.html
+
+# --- Models: only ship the final deliverable ---
+models/*
+!models/.gitkeep
+!models/cnn_transformer_final.onnx
+!models/cnn_transformer_final_calibration.json
+!models/cnn_transformer_final_thresholds.json

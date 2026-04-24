@@ -1,0 +1,76 @@
+% CNN-Transformer architecture diagram (\input'd by drivers; do not compile directly).
+\begin{tikzpicture}[node distance=0.45cm and 0.45cm]
+
+% main pipeline
+\node[input] (in) {Input\\[1pt]\scriptsize (1, 1, 1000)};
+\node[conv, right=of in] (c1) {Conv1d\\[1pt]\scriptsize 7$\times$1, s=2\\\scriptsize 1$\to$32 ch\\\scriptsize BN+ReLU};
+\node[conv, right=of c1] (c2) {Conv1d\\[1pt]\scriptsize 5$\times$1, s=2\\\scriptsize 32$\to$64 ch\\\scriptsize BN+ReLU};
+\node[conv, right=of c2] (c3) {Conv1d\\[1pt]\scriptsize 3$\times$1, s=2\\\scriptsize 64$\to$64 ch\\\scriptsize BN+ReLU};
+\node[posblock, right=of c3] (pe) {Pos\\Embed\\[1pt]\scriptsize learnable\\\scriptsize (1,125,64)};
+\node[tf, right=of pe] (t1) {Transformer\\Block 1\\[1pt]\scriptsize 4-head attn\\\scriptsize d=64, ff=256};
+\node[tf, right=of t1] (t2) {Transformer\\Block 2\\[1pt]\scriptsize 4-head attn\\\scriptsize d=64, ff=256};
+\node[pool, right=of t2] (gp) {Global\\AvgPool};
+\node[fc, right=of gp] (fc) {FC\\[1pt]\scriptsize 64 $\to$ 1\\\scriptsize Sigmoid};
+\node[output, right=0.4cm of fc] (out) {P(MI)};
+
+% Title + subtitle, centered over the pipeline (above the phase labels)
+\node[font=\Large\sffamily\bfseries, text=darkink, anchor=south]
+  at ([yshift=2.0cm]$(in.north)!0.5!(out.north)$) (title) {CNN-Transformer (our extension)};
+\node[font=\sffamily, text=darkink!60, anchor=north, below=2pt of title.south]
+  (subtitle) {131K parameters \textperiodcentered{} 0.63\,MB};
+
+\foreach \a/\b in {in/c1, c1/c2, c2/c3, c3/pe, pe/t1, t1/t2, t2/gp, gp/fc, fc/out}
+  \draw[arrow] (\a) -- (\b);
+
+% Phase labels (above)
+\node[phaselbl, text=phasecnn, above=4pt of c2.north] (lblcnn) {CNN Feature Extractor};
+\draw[phaseline, phasecnn] ([xshift=-2pt]c1.north west |- lblcnn.south) -- ([xshift=2pt]c3.north east |- lblcnn.south);
+
+\node[phaselbl, text=phasetf, above=4pt of t1.north east, xshift=4pt] (lbltf) {Transformer Encoder};
+\draw[phaseline, phasetf] ([xshift=-2pt]pe.north west |- lbltf.south) -- ([xshift=2pt]t2.north east |- lbltf.south);
+
+\node[phaselbl, text=phasecls, above=4pt of fc.north west, xshift=-2pt] (lblcl) {Classification};
+\draw[phaseline, phasecls] ([xshift=-2pt]gp.north west |- lblcl.south) -- ([xshift=2pt]fc.north east |- lblcl.south);
+
+% Tensor shape annotations (below)
+\foreach \n/\s in {in/(1{,}1000), c1/(32{,}500), c2/(64{,}250), c3/(64{,}125), t1/(125{,}64), t2/(125{,}64), gp/(64), fc/(1)}
+  \node[shapelabel, below=2pt of \n.south] {\s};
+
+% --- Transformer Block detail ---
+% Outer box: fixed width, centered horizontally on main pipeline
+\node[detailbox, minimum width=17.5cm, minimum height=3.8cm, anchor=north]
+      at ([yshift=-1.5cm]$(in.south)!0.5!(out.south)$) (dbox) {};
+
+\node[font=\sffamily\bfseries, text=darkink, anchor=north]
+      at ([yshift=-10pt]dbox.north) {Transformer Encoder Block ($\times$2)};
+
+% Inner chain centered on dbox.center.
+% Chain widths: mha=3.0 / a1=0.7 / ffn=3.0 / a2=0.7 / drop=1.8 / dout~0.8
+% Gaps: 0.5, 0.5, 0.5, 0.5, 0.4. Total ~12.4cm. Center at ~6.2cm from mha's left.
+% mha.center sits 1.5cm right of chain-left, so mha.center = chain_center - 4.7cm.
+\node[detailblock, anchor=center, minimum width=3.0cm]
+      at ([xshift=-4.7cm, yshift=-0.05cm]dbox.center)
+  (mha) {Multi-Head Attention\\[1pt]\scriptsize 4 heads, $d_k$=16};
+\node[addnode, right=0.5cm of mha] (a1) {+};
+\node[detailblock, right=0.5cm of a1, minimum width=3.0cm] (ffn) {Feed-Forward\\[1pt]\scriptsize 64 $\to$ 256 $\to$ 64};
+\node[addnode, right=0.5cm of ffn] (a2) {+};
+\node[detailblock, right=0.5cm of a2, minimum width=1.8cm] (drop) {Dropout};
+\node[font=\footnotesize\sffamily, text=darkink, right=0.4cm of drop] (dout) {output};
+
+\draw[arrow] (mha) -- (a1);
+\draw[arrow] (a1) -- (ffn);
+\draw[arrow] (ffn) -- (a2);
+\draw[arrow] (a2) -- (drop);
+\draw[arrow] (drop) -- (dout);
+
+% LayerNorm labels under add nodes
+\node[font=\scriptsize\sffamily, text=darkink!60, below=2pt of a1] {LayerNorm};
+\node[font=\scriptsize\sffamily, text=darkink!60, below=2pt of a2] {LayerNorm};
+
+% Residual skip connections (dashed red)
+\draw[skip] (mha.south) -- ++(0,-0.55) -| (a1.south);
+\draw[skip] (ffn.south) -- ++(0,-0.55) -| (a2.south);
+\node[font=\scriptsize\itshape, text=skipred] at ($(mha.south)+(1.0,-0.85)$) {residual};
+\node[font=\scriptsize\itshape, text=skipred] at ($(ffn.south)+(1.0,-0.85)$) {residual};
+
+\end{tikzpicture}
