@@ -3,6 +3,7 @@
 .DS_Store
 data/*
 !data/README.md
+!data/shaoxing_final_splits.csv
 cache/
 checkpoints/
 *.duckdb
@@ -33,8 +34,8 @@ diagprev-*.png
 page-*.png
 col2*.png
 
-# --- Demo (not yet ready for upload) ---
-demo.html
+# --- Backup files ---
+*.bak
 
 # --- Models: only ship the final deliverable ---
 models/*

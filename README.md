@@ -87,6 +87,27 @@ Open `code/` in Jupyter. Recommended order:
 
 Final artifacts (committed): `models/cnn_transformer_final.onnx`, `models/cnn_transformer_final_thresholds.json`, `models/cnn_transformer_final_calibration.json`.
 
+### 5.4 Interactive Demo
+
+A self-contained, single-file interactive demo lives at [`demo.html`](demo.html) at the repo root. Open it in any modern browser — no server, no build step.
+
+**What's in it (three tabs):**
+
+- **The Challenge** — draw a Lead I ECG sample, guess the patient's MI risk yourself, then see the model's calibrated risk score on the same trace.
+- **Risk Stratification** — run the model on all 349 demo samples and see enrichment ratios at each top-percentile cutoff.
+- **Results Explorer** — full architecture-sweep table and on-device latency comparison.
+
+**Demo data.** All 349 ECG traces are drawn from the held-out 40/20/40 test split of the Ningbo+Shaoxing cohort (the model has never seen them during training or validation). The set is deliberately enriched: all 49 MI cases plus 300 randomly sampled non-MI cases, so the apparent MI rate (~14%) does not reflect any real-world prevalence — it's chosen so the demo has enough positives to be informative.
+
+**Regenerate the demo data.** If you retrain or re-export the model, regenerate `demo.html` with:
+
+```bash
+cd code
+python build_demo.py
+```
+
+This re-scores the full 18,062-record test split, samples the enriched demo set, and rewrites `demo.html` in place (with a `.bak` of the previous version). It needs `models/cnn_transformer_final.onnx`, the calibration JSON, and `data/shaoxing_final_splits.csv` (committed) — plus the actual Ningbo+Shaoxing waveforms (downloaded per `data/README.md`).
+
 ## 6. Results / Insights
 
 | Metric                                     | Value                          |
