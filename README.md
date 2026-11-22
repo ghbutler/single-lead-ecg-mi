@@ -26,18 +26,18 @@ Original paper headline: AUC 0.77 on the held-out 60% Tamil Nadu cohort, with th
 ## 3. GitHub Contents
 
 ```
-final project/
+single-lead-ecg-mi/
 ├── README.md               ← you are here
 ├── LICENSE                 ← MIT
 ├── .gitignore
 ├── DEVELOPMENT.md          ← phase-by-phase project narrative
+├── demo.html               ← interactive single-file demo (section 5.4)
+├── project_proposal.md     ← original project proposal
 ├── code/                   ← Jupyter notebooks (training, tuning, quantization, deployment)
-├── data/                   ← see data/README.md for download instructions (gitignored)
-├── docs/                   ← original paper, project proposal, instructions, architecture diagrams
+├── data/                   ← see data/README.md for download instructions (waveforms not committed)
+├── docs/                   ← project proposal (PDF), poster outline, base-rate notes
 ├── models/                 ← only the final deployment ONNX is committed
-├── poster/                 ← poster.tex/pdf and TikZ architecture diagrams
-├── report/                 ← 2-page summary (TBD before May 12)
-└── results/                ← (forthcoming) figures and tables
+└── poster/                 ← poster.tex/pdf and TikZ architecture diagrams
 ```
 
 ## 4. Re-implementation Details
